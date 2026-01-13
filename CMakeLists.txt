@@ -7,4 +7,5 @@ add_executable(ubitix main.c
         gateway.h
         action.h
         gateway.c
-        action.c)
+        action.c
+        toml/tomlc17.c)

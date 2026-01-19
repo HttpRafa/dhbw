@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gateway.h"
-#include "action.h"
+#include "gateway/gateway.h"
+#include "action/action.h"
 
 void print_help() {
     printf("--------------- HELP ---------------\n");
@@ -11,7 +11,7 @@ void print_help() {
     printf("------------------------------------\n");
 }
 
-int main(const int argc, char* argv[]) {
+int main(const int argc, char* argv[], char* env[]) {
     if (argc < 2) {
         print_help();
         return 1;

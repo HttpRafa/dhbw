@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "log.h"
 #include "gateway/gateway.h"
 #include "action/action.h"
 
 void print_help() {
-    printf("--------------- HELP ---------------\n");
-    printf("--gateway # Enable Gateway mode\n");
-    printf("--action # Enable Gateway mode\n");
-    printf("------------------------------------\n");
+    warn("--------------- HELP ---------------");
+    warn("--gateway # Enable Gateway mode");
+    warn("--action # Enable Gateway mode");
+    warn("------------------------------------");
 }
 
 int main(const int argc, char* argv[], char* env[]) {
@@ -26,7 +27,7 @@ int main(const int argc, char* argv[], char* env[]) {
             start_action();
             return 0;
         }
-        printf("Error: Unkown command line argument: %s\n", argv[i]);
+        error("Unkown command line argument: %s", argv[i]);
     }
     print_help();
 

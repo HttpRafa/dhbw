@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../log.h"
 #include "../toml/tomlc17.h"
 
 #define FILE_KEY "file"
@@ -17,12 +18,12 @@
 char* try_get_string(const char* name, toml_datum_t datum) {
     switch (datum.type) {
         case TOML_UNKNOWN:
-            printf("MISSING VALUE: %s\n", name);
+            warn("MISSING VALUE: %s", name);
             break;
         case TOML_STRING:
             return strdup(datum.u.str.ptr);
         default:
-            printf("Type mismatch between expected type of '%s' and provided type.\nExpected: %d Given: %d\n", name, TOML_STRING, datum.type);
+            warn("Type mismatch between expected type of '%s' and provided type.\nExpected: %d Given: %d", name, TOML_STRING, datum.type);
             break;
     }
     return NULL;
@@ -31,7 +32,7 @@ char* try_get_string(const char* name, toml_datum_t datum) {
 gateway_config_t load_gateway_config() {
     FILE* file = fopen("gateway.toml", "r");
     if (file == NULL) {
-        printf("Error opening gateway.toml\n");
+        error("Error opening gateway.toml");
 
         return (gateway_config_t){ .ready = false };
     }
@@ -39,13 +40,13 @@ gateway_config_t load_gateway_config() {
     toml_result_t result = toml_parse_file(file);
     fclose(file);
     if (!result.ok) {
-        printf("Error parsing gateway.toml: %s\n", result.errmsg);
+        error("Error parsing gateway.toml: %s", result.errmsg);
 
         toml_free(result);
         return (gateway_config_t){ .ready = false };
     }
 
-    printf("Gateway file loaded!\n");
+    info("Gateway file loaded!");
 
     gateway_config_t config = { .ready = true };
 

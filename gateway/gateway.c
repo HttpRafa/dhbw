@@ -4,21 +4,18 @@
 #include <threads.h>
 
 #include "config.h"
+#include "../log.h"
 
-void start_gateway() {
-    gateway_config_t config = load_gateway_config();
-    if (!config.ready) {
-        printf("Config not ready. Abort....\n");
-        return;
-    }
+void handle_line(char buffer[]) {
+    debug("%s", buffer);
+}
 
-    printf("Starting to tail provided file: %s\n", config.log_file);
-
+void start_watcher(gateway_config_t config) {
     FILE* file = fopen(config.log_file, "r");
-    char buffer[1024];
+    char buffer[2048];
 
     if (file == NULL) {
-        printf("Log file not found. Abort....\n");
+        error("Log file not found. Abort....");
         return;
     }
 
@@ -31,7 +28,7 @@ void start_gateway() {
 
     while (true) {
         if (fgets(buffer, sizeof(buffer), file)) {
-            printf("%s", buffer);
+            handle_line(buffer);
         } else {
             if (feof(file)) {
                 clearerr(file);
@@ -43,5 +40,17 @@ void start_gateway() {
     }
 
     fclose(file);
+}
+
+void start_gateway() {
+    gateway_config_t config = load_gateway_config();
+    if (!config.ready) {
+        error("Config not ready. Abort....");
+        return;
+    }
+
+    info("Starting to tail provided file: %s", config.log_file);
+    start_watcher(config);
+
     free_gateway_config(config);
 }

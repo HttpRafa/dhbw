@@ -19,6 +19,7 @@ struct gateway_config_t {
         int len;        // Amount of networks
     } networks;
 };
+
 typedef struct gateway_config_t gateway_config_t;
 
 gateway_config_t load_gateway_config();

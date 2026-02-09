@@ -9,5 +9,7 @@ add_executable(ubitix main.c
         action/action.c
         gateway/config.c
         log.c
-        gateway/state.c
-        gateway/state.h)
+        common/state.c
+        common/state.h
+        common/ipv6.c
+        common/ipv6.h)

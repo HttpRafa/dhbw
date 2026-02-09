@@ -7,9 +7,10 @@
 #include <string.h>
 
 #include "config.h"
+#include "../common/state.h"
 #include "../log.h"
 
-void handle_line(const gateway_config_t* config, char buffer[]) {
+void handle_line(const gateway_config_t* config, const gateway_state_t* state, char buffer[]) {
     buffer[strcspn(buffer, "\r\n")] = '\0';
     debug("[LINE] %s", buffer);
 
@@ -31,6 +32,8 @@ void handle_line(const gateway_config_t* config, char buffer[]) {
             goto cleanup;
         }
 
+        if (ipv6_cmp(&state->prefix, ))
+
         info("Found prefix: %s, interface: %s", prefix, interface);
 
     cleanup:
@@ -39,8 +42,8 @@ void handle_line(const gateway_config_t* config, char buffer[]) {
     }
 }
 
-void start_watcher(gateway_config_t config) {
-    FILE* file = fopen(config.log_file, "r");
+void start_watcher(const gateway_config_t* config, const gateway_state_t* state) {
+    FILE* file = fopen(config->log_file, "r");
     char buffer[2048];
 
     if (file == NULL) {
@@ -57,7 +60,7 @@ void start_watcher(gateway_config_t config) {
 
     while (true) {
         if (fgets(buffer, sizeof(buffer), file)) {
-            handle_line(&config, buffer);
+            handle_line(config, state, buffer);
         } else {
             if (feof(file)) {
                 clearerr(file);
@@ -73,13 +76,14 @@ void start_watcher(gateway_config_t config) {
 
 void start_gateway() {
     gateway_config_t config = load_gateway_config();
+    gateway_state_t state = load_gateway_state();
     if (!config.ready) {
         error("Config not ready. Abort....");
         return;
     }
 
     info("Starting to tail provided file: %s", config.log_file);
-    start_watcher(config);
+    start_watcher(&config, &state);
 
     free_gateway_config(config);
 }

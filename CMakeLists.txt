@@ -8,4 +8,6 @@ add_executable(ubitix main.c
         gateway/gateway.c
         action/action.c
         gateway/config.c
-        log.c)
+        log.c
+        gateway/state.c
+        gateway/state.h)

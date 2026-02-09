@@ -1,13 +1,15 @@
 #ifndef UBITIX_CONFIG_H
 #define UBITIX_CONFIG_H
 
+#include <regex.h>
 #include <stdbool.h>
 
 // TOML Configuration
 struct gateway_config_t {
     bool ready;
     char* log_file;
-    char* regex;
+    regex_t* regex;
+    char* interface;
     char* token;
     char* owner;
     char* repository;

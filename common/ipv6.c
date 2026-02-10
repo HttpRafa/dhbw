@@ -52,3 +52,21 @@ int ipv6_is_valid(const ipv6_net_t* address) {
 int ipv6_cmp(const ipv6_net_t* first, const ipv6_net_t* second) {
     return memcmp(&first->address, &second->address, sizeof(struct in6_addr)) == 0 && first->mask == second->mask;
 }
+
+void ipv6_fill_bits_high(struct in6_addr* address, int start, int end) {
+    for (int i = start; i < end; i++) {
+        address->s6_addr[i / 8] |= 1 << (7 - i % 8);
+    }
+}
+
+int ipv6_decrement_top(struct in6_addr* address) {
+    for (int i = 7; i >= 0; i--) {
+        if (address->s6_addr[i] > 0) {
+            address->s6_addr[i]--;
+            return 0;
+        }
+        // Borrow from the next byte
+        address->s6_addr[i] = 0xFF;
+    }
+    return -1; // Underflow occurred
+}

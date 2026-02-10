@@ -23,6 +23,6 @@ struct gateway_config_t {
 typedef struct gateway_config_t gateway_config_t;
 
 gateway_config_t load_gateway_config();
-void free_gateway_config(gateway_config_t config);
+void free_gateway_config(gateway_config_t* config);
 
 #endif //UBITIX_CONFIG_H

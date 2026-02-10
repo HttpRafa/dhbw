@@ -19,25 +19,46 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
         int prefix_len = matches[1].rm_eo - matches[1].rm_so;
         int interface_len = matches[2].rm_eo - matches[2].rm_so;
 
-        char* prefix = malloc(prefix_len + 1);
-        strncpy(prefix, buffer + matches[1].rm_so, prefix_len);
-        prefix[prefix_len] = '\0';
+        char* raw_prefix = malloc(prefix_len + 1);
+        strncpy(raw_prefix, buffer + matches[1].rm_so, prefix_len);
+        raw_prefix[prefix_len] = '\0';
 
         char* interface = malloc(interface_len + 1);
         strncpy(interface, buffer + matches[2].rm_so, interface_len);
         interface[interface_len] = '\0';
+
+        // Parse prefix string to prefix
+        ipv6_net_t prefix = ipv6_from_string(raw_prefix);
+        if (!ipv6_is_valid(&prefix)) {
+            error("Error: Invalid IPv6 string format. (%s)", raw_prefix);
+            goto cleanup;
+        }
 
         if (strcmp(interface, config->interface) != 0) {
             info("Prefix change detected on a different interface (%s): Unknown -> %s (no action taken)", interface, prefix);
             goto cleanup;
         }
 
-        if (ipv6_cmp(&state->prefix, ))
+        char old_prefix[128];
+        ipv6_to_string(&state->prefix, old_prefix, sizeof(old_prefix));
+        if (!ipv6_cmp(&state->prefix, &prefix)) {
+            info("Prefix updated on target interface %s: %s -> %s", interface, old_prefix, raw_prefix);
 
-        info("Found prefix: %s, interface: %s", prefix, interface);
+            // Delete IP Tables rules
+
+            // Calc Mappings
+
+            // Append IP Tables rules
+
+            // Dispatch Github Workflow...
+
+            // Update state on disk
+        } else {
+            warn("Received redundant prefix change for interface %s: %s -> %s (no action taken)", interface, old_prefix, raw_prefix);
+        }
 
     cleanup:
-        free(prefix);
+        free(raw_prefix);
         free(interface);
     }
 }
@@ -85,5 +106,5 @@ void start_gateway() {
     info("Starting to tail provided file: %s", config.log_file);
     start_watcher(&config, &state);
 
-    free_gateway_config(config);
+    free_gateway_config(&config);
 }

@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../log.h"
+#include "../common/state.h"
 #include "../toml/tomlc17.h"
 
 #define FILE_KEY "file"
@@ -16,20 +17,6 @@
 #define OWNER_KEY "owner"
 #define REPOSITORY_KEY "repository"
 #define WORKFLOW_KEY "workflow"
-
-char* try_get_string(const char* name, toml_datum_t datum) {
-    switch (datum.type) {
-        case TOML_UNKNOWN:
-            warn("MISSING VALUE: %s", name);
-            break;
-        case TOML_STRING:
-            return strdup(datum.u.str.ptr);
-        default:
-            warn("Type mismatch between expected type of '%s' and provided type.\nExpected: %d Given: %d", name, TOML_STRING, datum.type);
-            break;
-    }
-    return NULL;
-}
 
 gateway_config_t load_gateway_config() {
     FILE* file = fopen("gateway.toml", "r");
@@ -85,24 +72,28 @@ gateway_config_t load_gateway_config() {
     return config;
 }
 
-void free_gateway_config(gateway_config_t config) {
+void free_gateway_config(gateway_config_t* config) {
     // Free normal stuff
-    free(config.log_file);
+    free(config->log_file);
 
-    if (config.regex != NULL) {
-        regfree(config.regex);
-        free(config.regex);
+    if (config->regex != NULL) {
+        regfree(config->regex);
+        free(config->regex);
     }
 
-    free(config.interface);
-    free(config.token);
-    free(config.owner);
-    free(config.repository);
-    free(config.workflow);
+    free(config->interface);
+    free(config->token);
+    free(config->owner);
+    free(config->repository);
+    free(config->workflow);
 
     // Free fancy sst
-    for (int i = 0; i < config.networks.len; i++) {
-        free(config.networks.ptr[i]);
+    if (config->networks.ptr) {
+        for (int i = 0; i < config->networks.len; i++) {
+            free(config->networks.ptr[i]); // Free the pair {src, dest}
+        }
+        free(config->networks.ptr); // Free the array of pointers
+        config->networks.ptr = NULL;
     }
-    free(config.networks.ptr);
+    config->networks.len = 0;
 }

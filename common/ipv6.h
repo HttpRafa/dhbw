@@ -11,7 +11,9 @@ struct ipv6_net_t {
 typedef struct ipv6_net_t ipv6_net_t;
 
 ipv6_net_t ipv6_from_string(const char *str);
+const char* ipv6_to_string(const ipv6_net_t *net, char *dest, size_t size);
 
+int ipv6_is_valid(const ipv6_net_t* address);
 int ipv6_cmp(const ipv6_net_t* first, const ipv6_net_t* second);
 
 #endif //UBITIX_IPV6_H

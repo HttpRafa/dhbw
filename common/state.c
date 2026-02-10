@@ -65,8 +65,32 @@ gateway_state_t load_gateway_state() {
     {
         toml_datum_t datum = toml_get(result.toptab, MAPPING_KEY);
         if (datum.type == TOML_TABLE) {
+            ipv6_net_t* mapping = malloc(sizeof(ipv6_net_t) * 2 * datum.u.tab.size);
             for (unsigned int i = 0; i < datum.u.tab.size; i++) {
+                ipv6_net_t key = ipv6_from_string(datum.u.tab.key[i]);
+                if (!ipv6_is_valid(&key)) {
+                    error("The mappings table contains a invalid IPv6 address: %s", datum.u.tab.key[i]);
+                    free(mapping);
+                    goto cleanup;
+                }
+                const char* raw_value = try_get_string("<VALUE>", datum.u.tab.value[i]);
+                if (raw_value == NULL) {
+                    error("The mappings contains a invalid toml type.");
+                    free(mapping);
+                    goto cleanup;
+                }
+                ipv6_net_t value = ipv6_from_string(raw_value);
+                if (!ipv6_is_valid(&value)) {
+                    error("The mappings table contains a invalid IPv6 address: %s", raw_value);
+                    free(mapping);
+                    goto cleanup;
+                }
+
+                mapping[i * 2] = key;
+                mapping[i * 2 + 1] = value;
             }
+            state.mapping.ptr = mapping;
+            state.mapping.len = datum.u.tab.size;
         } else {
             error("The state file is missing the table %s", MAPPING_KEY);
             goto cleanup;
@@ -84,10 +108,7 @@ cleanup:
 
 void free_gateway_state(gateway_state_t* state) {
     if (state->mapping.ptr) {
-        for (int i = 0; i < state->mapping.len; i++) {
-            free(state->mapping.ptr[i]); // Free the pair {src, dest}
-        }
-        free(state->mapping.ptr); // Free the array of pointers
+        free(state->mapping.ptr);
         state->mapping.ptr = NULL;
     }
     state->mapping.len = 0;

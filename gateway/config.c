@@ -57,6 +57,34 @@ gateway_config_t load_gateway_config() {
         }
     }
 
+    {
+        toml_datum_t datum = toml_get(result.toptab, NETWORKS_KEY);
+        if (datum.type == TOML_ARRAY) {
+            ipv6_net_t* networks = malloc(sizeof(ipv6_net_t) * datum.u.arr.size);
+            for (unsigned int i = 0; i < datum.u.arr.size; i++) {
+                const char* raw_value = try_get_string("<VALUE>", datum.u.arr.elem[i]);
+                if (raw_value == NULL) {
+                    error("The networks array contains a invalid toml type.");
+                    free(networks);
+                    goto cleanup;
+                }
+                ipv6_net_t value = ipv6_from_string(raw_value);
+                if (!ipv6_is_valid(&value)) {
+                    error("The networks array contains a invalid IPv6 address: %s", raw_value);
+                    free(networks);
+                    goto cleanup;
+                }
+
+                networks[i] = value;
+            }
+            config.networks.ptr = networks;
+            config.networks.len = datum.u.arr.size;
+        } else {
+            error("The gateway file is missing the array %s", NETWORKS_KEY);
+            goto cleanup;
+        }
+    }
+
     config.log_file   = try_get_string(FILE_KEY, toml_get(result.toptab, FILE_KEY));
     config.interface  = try_get_string(INTERFACE_KEY, toml_get(result.toptab, INTERFACE_KEY));
     config.token      = try_get_string(TOKEN_KEY, toml_get(result.toptab, TOKEN_KEY));
@@ -68,6 +96,7 @@ gateway_config_t load_gateway_config() {
         config.ready = false;
     }
 
+cleanup:
     toml_free(result);
     return config;
 }
@@ -89,9 +118,6 @@ void free_gateway_config(gateway_config_t* config) {
 
     // Free fancy sst
     if (config->networks.ptr) {
-        for (int i = 0; i < config->networks.len; i++) {
-            free(config->networks.ptr[i]); // Free the pair {src, dest}
-        }
         free(config->networks.ptr); // Free the array of pointers
         config->networks.ptr = NULL;
     }

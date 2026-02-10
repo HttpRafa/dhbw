@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "mapping.h"
 #include "../common/state.h"
 #include "../log.h"
 
@@ -47,6 +48,10 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
             // Delete IP Tables rules
 
             // Calc Mappings
+            const ipv6_net_t* mappings = compute_mappings(&prefix, config->networks.ptr, config->networks.len);
+            if (mappings == NULL) {
+                goto cleanup;
+            }
 
             // Append IP Tables rules
 

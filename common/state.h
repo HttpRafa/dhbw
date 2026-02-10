@@ -8,7 +8,7 @@
 struct gateway_state_t {
     ipv6_net_t prefix;
     struct {
-        ipv6_net_t** ptr;     // Array of pointers to {src, dest} pairs
+        ipv6_net_t* ptr;     // Array of pointers to {src, dest} pairs
         int len;              // Amount of entries
     } mapping;
 };

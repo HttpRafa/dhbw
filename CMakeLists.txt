@@ -12,4 +12,6 @@ add_executable(ubitix main.c
         common/state.c
         common/state.h
         common/ipv6.c
-        common/ipv6.h)
+        common/ipv6.h
+        gateway/mapping.c
+        gateway/mapping.h)

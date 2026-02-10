@@ -4,6 +4,8 @@
 #include <regex.h>
 #include <stdbool.h>
 
+#include "../common/ipv6.h"
+
 // TOML Configuration
 struct gateway_config_t {
     bool ready;
@@ -15,8 +17,8 @@ struct gateway_config_t {
     char* repository;
     char* workflow;
     struct {
-        char** ptr;     // Pointer to the networks array
-        int len;        // Amount of networks
+        ipv6_net_t* ptr;     // Pointer to the networks array
+        int len;              // Amount of networks
     } networks;
 };
 

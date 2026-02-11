@@ -14,4 +14,6 @@ add_executable(ubitix main.c
         common/ipv6.c
         common/ipv6.h
         gateway/mapping.c
-        gateway/mapping.h)
+        gateway/mapping.h
+        gateway/iptables.c
+        gateway/iptables.h)

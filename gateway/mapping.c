@@ -1,7 +1,3 @@
-//
-// Created by rafael on 2/10/26.
-//
-
 #include "mapping.h"
 
 #include <stdlib.h>
@@ -10,6 +6,10 @@
 #include "../log.h"
 
 int calc_subnets(const ipv6_net_t* parent, ipv6_net_t* results, const int n) {
+    if (parent == NULL || results == NULL || n == 0) {
+        // Someone messed up
+        return -1;
+    }
     if (parent->mask >= 64) {
         // This should be catched by the compute_mappings function
         return 1;
@@ -34,6 +34,10 @@ int calc_subnets(const ipv6_net_t* parent, ipv6_net_t* results, const int n) {
 }
 
 const ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* networks, int networks_size) {
+    if (prefix == NULL || networks == NULL || networks_size == 0) {
+        // Someone messed up
+        return NULL;
+    }
     if (prefix->mask >= 64) {
         error("The detected prefix must shorter to be split into /64 subnets.");
         return NULL;
@@ -42,7 +46,27 @@ const ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* n
     ipv6_net_t* mapping = malloc(sizeof(ipv6_net_t) * 2 * networks_size);
     ipv6_net_t* subnets = malloc(sizeof(ipv6_net_t) * networks_size);
 
-    calc_subnets(prefix, subnets, networks_size);
+    if (mapping == NULL || subnets == NULL) {
+        free(mapping);
+        free(subnets);
+        error("Failed to allocate required memory to compute the mapping");
+        return NULL;
+    }
 
+    if (calc_subnets(prefix, subnets, networks_size)) {
+        error("Failed to calc the required subnets %d for mapping %d networks", networks_size, networks_size);
+        free(subnets);
+        return NULL;
+    }
+
+    for (int i = 0; i < networks_size; i++) {
+        ipv6_net_t private = networks[networks_size - 1 - i];
+        ipv6_net_t public = subnets[i];
+
+        mapping[i * 2] = private;
+        mapping[i * 2 + 1] = public;
+    }
+
+    free(subnets);
     return mapping;
 }

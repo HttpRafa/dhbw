@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "iptables.h"
 #include "mapping.h"
 #include "../common/state.h"
 #include "../log.h"
@@ -53,11 +54,23 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
                 goto cleanup;
             }
 
+            info("Appending %d new NPTv6 rules:", config->networks.len * 2);
+            for (int i = 0; i < config->networks.len; i++) {
+                ipv6_net_t private = mappings[i * 2];
+                ipv6_net_t public = mappings[i * 2 + 1];
+
+                if (iptables_append_rules(&private, &public)) {
+                    error("Failed to append rules to IPv6 rules for mapping at index %d", i);
+                }
+            }
+
             // Append IP Tables rules
 
             // Dispatch Github Workflow...
 
             // Update state on disk
+
+            free((void*)mappings);
         } else {
             warn("Received redundant prefix change for interface %s: %s -> %s (no action taken)", interface, old_prefix, raw_prefix);
         }

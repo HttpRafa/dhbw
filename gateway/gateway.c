@@ -12,7 +12,7 @@
 #include "../common/state.h"
 #include "../log.h"
 
-void handle_line(const gateway_config_t* config, const gateway_state_t* state, char buffer[]) {
+void handle_line(const gateway_config_t* config, gateway_state_t* state, char buffer[]) {
     buffer[strcspn(buffer, "\r\n")] = '\0';
     debug("[LINE] %s", buffer);
 
@@ -47,13 +47,23 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
             info("Prefix updated on target interface %s: %s -> %s", interface, old_prefix, raw_prefix);
 
             // Delete IP Tables rules
+            info("Deleting %d old NPTv6 rules:", state->mapping.len * 2);
+            for (int i = 0; i < state->mapping.len; i++) {
+                ipv6_net_t private = state->mapping.ptr[i * 2];
+                ipv6_net_t public = state->mapping.ptr[i * 2 + 1];
+
+                if (iptables_delete_rules(&private, &public)) {
+                    error("Failed to delete rules from IPv6 rules for mapping at index %d", i);
+                }
+            }
 
             // Calc Mappings
-            const ipv6_net_t* mappings = compute_mappings(&prefix, config->networks.ptr, config->networks.len);
+            ipv6_net_t* mappings = compute_mappings(&prefix, config->networks.ptr, config->networks.len);
             if (mappings == NULL) {
                 goto cleanup;
             }
 
+            // Append IP Tables rules
             info("Appending %d new NPTv6 rules:", config->networks.len * 2);
             for (int i = 0; i < config->networks.len; i++) {
                 ipv6_net_t private = mappings[i * 2];
@@ -64,13 +74,11 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
                 }
             }
 
-            // Append IP Tables rules
-
             // Dispatch Github Workflow...
 
             // Update state on disk
-
-            free((void*)mappings);
+            state_update(state, prefix, mappings, config->networks.len);
+            save_gateway_state(state);
         } else {
             warn("Received redundant prefix change for interface %s: %s -> %s (no action taken)", interface, old_prefix, raw_prefix);
         }
@@ -81,7 +89,7 @@ void handle_line(const gateway_config_t* config, const gateway_state_t* state, c
     }
 }
 
-void start_watcher(const gateway_config_t* config, const gateway_state_t* state) {
+void start_watcher(const gateway_config_t* config, gateway_state_t* state) {
     FILE* file = fopen(config->log_file, "r");
     char buffer[2048];
 

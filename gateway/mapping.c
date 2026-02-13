@@ -33,7 +33,7 @@ int calc_subnets(const ipv6_net_t* parent, ipv6_net_t* results, const int n) {
     return 0;
 }
 
-const ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* networks, int networks_size) {
+ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* networks, int networks_size) {
     if (prefix == NULL || networks == NULL || networks_size == 0) {
         // Someone messed up
         return NULL;

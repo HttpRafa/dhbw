@@ -28,6 +28,15 @@ char* try_get_string(const char* name, toml_datum_t datum) {
     return NULL;
 }
 
+void state_update(gateway_state_t* state, const ipv6_net_t prefix, ipv6_net_t* mappings, const int mappings_len) {
+    if (state->mapping.ptr) {
+        free(state->mapping.ptr);
+    }
+    state->prefix = prefix;
+    state->mapping.ptr = mappings;
+    state->mapping.len = mappings_len;
+}
+
 gateway_state_t load_gateway_state() {
     FILE* file = fopen("state.toml", "r");
     if (file == NULL) {
@@ -104,6 +113,56 @@ cleanup:
     toml_free(result);
     warn("Falling back to empty state...");
     return (gateway_state_t) { .prefix = { .address = {}, .mask = 128 }, .mapping = { .ptr = NULL, .len = 0 } };
+}
+
+int save_gateway_state(const gateway_state_t* state) {
+    // We write to a temporary file first to prevent corruption
+    // if the program crashes during the write operation.
+    const char* filename = "state.toml";
+    const char* temp_filename = "state.toml.tmp";
+
+    FILE* file = fopen(temp_filename, "w");
+    if (file == NULL) {
+        error("Failed to open temporary state file for writing: %s", temp_filename);
+        return 1;
+    }
+
+    char buffer[INET6_ADDRSTRLEN + 10];
+
+    if (ipv6_to_string(&state->prefix, buffer, sizeof(buffer))) {
+        fprintf(file, "%s = \"%s\"\n", PREFIX_KEY, buffer);
+    } else {
+        warn("Failed to convert global prefix to string during save.");
+    }
+
+    fprintf(file, "\n");
+    fprintf(file, "[%s]\n", MAPPING_KEY);
+
+    for (int i = 0; i < state->mapping.len; i++) {
+        char key_buffer[INET6_ADDRSTRLEN + 10];
+        char value_buffer[INET6_ADDRSTRLEN + 10];
+
+        const ipv6_net_t* key = &state->mapping.ptr[i * 2];
+        const ipv6_net_t* value = &state->mapping.ptr[i * 2 + 1];
+
+        if (ipv6_to_string(key, key_buffer, sizeof(key_buffer)) && ipv6_to_string(value, value_buffer, sizeof(value_buffer))) {
+            fprintf(file, "\"%s\" = \"%s\"\n", key_buffer, value_buffer);
+        } else {
+            warn("Skipping invalid mapping entry at index %d during save.", i);
+        }
+    }
+
+    fclose(file);
+
+    // This ensures state.toml is never half-written.
+    if (rename(temp_filename, filename) != 0) {
+        error("Failed to save state file (rename failed).");
+        remove(temp_filename);
+        return 1;
+    }
+
+    debug("State saved successfully to %s", filename);
+    return 0;
 }
 
 void free_gateway_state(gateway_state_t* state) {

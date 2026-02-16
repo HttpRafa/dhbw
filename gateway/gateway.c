@@ -128,6 +128,8 @@ void start_gateway(const int dry_run) {
     gateway_state_t state = load_gateway_state();
     if (!config.ready) {
         error("Config not ready. Abort....");
+        free_gateway_config(&config);
+        free_gateway_state(&state);
         return;
     }
 

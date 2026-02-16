@@ -55,6 +55,7 @@ ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* network
 
     if (calc_subnets(prefix, subnets, networks_size)) {
         error("Failed to calc the required subnets %d for mapping %d networks", networks_size, networks_size);
+        free(mapping);
         free(subnets);
         return NULL;
     }

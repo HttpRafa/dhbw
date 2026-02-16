@@ -93,11 +93,11 @@ gateway_config_t load_gateway_config() {
     config.repository = try_get_string(REPOSITORY_KEY, toml_get(result.toptab, REPOSITORY_KEY));
     config.workflow   = try_get_string(WORKFLOW_KEY, toml_get(result.toptab, WORKFLOW_KEY));
 
-    if (!config.log_file || !config.regex || !config.interface || !config.token || !config.owner || !config.repository || !config.workflow) {
+cleanup:
+    if (!config.log_file || !config.regex || !config.interface || !config.token || !config.owner || !config.repository || !config.workflow || !config.networks.ptr) {
         config.ready = false;
     }
 
-cleanup:
     toml_free(result);
     return config;
 }

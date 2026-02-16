@@ -43,7 +43,7 @@ gateway_config_t load_gateway_config() {
         const char* raw_regex = try_get_string(REGEX_KEY, toml_get(result.toptab, REGEX_KEY));
         if (raw_regex != NULL) {
             regex_t* regex = malloc(sizeof(regex_t));
-            int error_code = regcomp(regex, raw_regex, REG_EXTENDED);
+            const int error_code = regcomp(regex, raw_regex, REG_EXTENDED);
             if (error_code) {
                 char buffer[256];
                 regerror(error_code, regex, buffer, sizeof(buffer));

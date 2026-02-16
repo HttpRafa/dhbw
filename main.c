@@ -35,7 +35,7 @@ int main(const int argc, char* argv[], char* env[]) {
             start_action(dry_run);
             return 0;
         }
-        error("Unkown command line argument: %s", argv[i]);
+        error("Unknown command line argument: %s", argv[i]);
     }
     print_help();
 

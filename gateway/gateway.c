@@ -19,8 +19,8 @@ void handle_line(const gateway_config_t* config, gateway_state_t* state, char bu
 
     regmatch_t matches[3];
     if (regexec(config->regex, buffer, 3, matches, 0) == 0 && matches[1].rm_so != -1 && matches[2].rm_so != -1) {
-        int prefix_len = matches[1].rm_eo - matches[1].rm_so;
-        int interface_len = matches[2].rm_eo - matches[2].rm_so;
+        const int prefix_len = matches[1].rm_eo - matches[1].rm_so;
+        const int interface_len = matches[2].rm_eo - matches[2].rm_so;
 
         char* raw_prefix = malloc(prefix_len + 1);
         strncpy(raw_prefix, buffer + matches[1].rm_so, prefix_len);
@@ -100,7 +100,7 @@ void start_watcher(const gateway_config_t* config, gateway_state_t* state, const
         return;
     }
 
-    struct timespec sleep_duration = {
+    const struct timespec sleep_duration = {
         .tv_sec = 0,
         .tv_nsec = 100000000
     };

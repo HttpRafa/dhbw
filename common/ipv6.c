@@ -23,7 +23,7 @@ ipv6_net_t ipv6_from_string(const char *str) {
         result.mask = 128;
     }
 
-    int status = inet_pton(AF_INET6, buffer, &result.address);
+    const int status = inet_pton(AF_INET6, buffer, &result.address);
     if (status != 1) {
         debug("Failed to parse IPv6 from string: %d", status);
         result.mask = 255;

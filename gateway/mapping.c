@@ -33,7 +33,7 @@ int calc_subnets(const ipv6_net_t* parent, ipv6_net_t* results, const int n) {
     return 0;
 }
 
-ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* networks, int networks_size) {
+ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* networks, const int networks_size) {
     if (prefix == NULL || networks == NULL || networks_size == 0) {
         // Someone messed up
         return NULL;
@@ -61,8 +61,8 @@ ipv6_net_t* compute_mappings(const ipv6_net_t* prefix, const ipv6_net_t* network
     }
 
     for (int i = 0; i < networks_size; i++) {
-        ipv6_net_t private = networks[networks_size - 1 - i];
-        ipv6_net_t public = subnets[i];
+        const ipv6_net_t private = networks[networks_size - 1 - i];
+        const ipv6_net_t public = subnets[i];
 
         mapping[i * 2] = private;
         mapping[i * 2 + 1] = public;

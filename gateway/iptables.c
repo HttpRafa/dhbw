@@ -25,7 +25,7 @@ int iptables_append_rules(const ipv6_net_t* private, const ipv6_net_t* public, c
         snprintf(command, sizeof(command), "ip6tables -t nat -A POSTROUTING -s %s -j NETMAP --to %s", s_private, s_public);
         debug(" - # 1/2: %s", command);
         if (!dry_run) {
-            int result = system(command);
+            const int result = system(command);
             if (result != 0) {
                 error("Failed to execute NETMAP append POSTROUTING rule. Return code: %d", result);
             }
@@ -36,7 +36,7 @@ int iptables_append_rules(const ipv6_net_t* private, const ipv6_net_t* public, c
         snprintf(command, sizeof(command), "ip6tables -t nat -A PREROUTING -d %s -j NETMAP --to %s", s_public, s_private);
         debug(" - # 2/2: %s", command);
         if (!dry_run) {
-            int result = system(command);
+            const int result = system(command);
             if (result != 0) {
                 error("Failed to execute NETMAP append PREROUTING rule. Return code: %d", result);
             }
@@ -65,7 +65,7 @@ int iptables_delete_rules(const ipv6_net_t* private, const ipv6_net_t* public, c
         snprintf(command, sizeof(command), "ip6tables -t nat -D POSTROUTING -s %s -j NETMAP --to %s", s_private, s_public);
         debug(" - # 1/2: %s", command);
         if (!dry_run) {
-            int result = system(command);
+            const int result = system(command);
             if (result != 0) {
                 warn("Failed to delete NETMAP POSTROUTING rule (it might not exist). Return code: %d", result);
             }
@@ -76,7 +76,7 @@ int iptables_delete_rules(const ipv6_net_t* private, const ipv6_net_t* public, c
         snprintf(command, sizeof(command), "ip6tables -t nat -D PREROUTING -d %s -j NETMAP --to %s", s_public, s_private);
         debug(" - # 2/2: %s", command);
         if (!dry_run) {
-            int result = system(command);
+            const int result = system(command);
             if (result != 0) {
                 warn("Failed to delete NETMAP PREROUTING rule (it might not exist). Return code: %d", result);
             }

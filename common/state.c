@@ -14,7 +14,7 @@
 #define PREFIX_KEY "prefix"
 #define MAPPING_KEY "mapping"
 
-char* try_get_string(const char* name, toml_datum_t datum) {
+char* try_get_string(const char* name, const toml_datum_t datum) {
     switch (datum.type) {
         case TOML_UNKNOWN:
             warn("MISSING VALUE: %s", name);
@@ -97,6 +97,7 @@ gateway_state_t load_gateway_state() {
 
                 mapping[i * 2] = key;
                 mapping[i * 2 + 1] = value;
+                free((void*) raw_value);
             }
             state.mapping.ptr = mapping;
             state.mapping.len = datum.u.tab.size;

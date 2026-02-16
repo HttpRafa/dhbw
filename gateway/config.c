@@ -76,6 +76,7 @@ gateway_config_t load_gateway_config() {
                 }
 
                 networks[i] = value;
+                free((void*) raw_value);
             }
             config.networks.ptr = networks;
             config.networks.len = datum.u.arr.size;

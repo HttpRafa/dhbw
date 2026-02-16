@@ -9,10 +9,11 @@
 #include "config.h"
 #include "iptables.h"
 #include "mapping.h"
+#include "github.h"
 #include "../common/state.h"
 #include "../log.h"
 
-void handle_line(const gateway_config_t* config, gateway_state_t* state, char buffer[]) {
+void handle_line(const gateway_config_t* config, gateway_state_t* state, char buffer[], const int dry_run) {
     buffer[strcspn(buffer, "\r\n")] = '\0';
     debug("[LINE] %s", buffer);
 
@@ -52,7 +53,7 @@ void handle_line(const gateway_config_t* config, gateway_state_t* state, char bu
                 ipv6_net_t private = state->mapping.ptr[i * 2];
                 ipv6_net_t public = state->mapping.ptr[i * 2 + 1];
 
-                if (iptables_delete_rules(&private, &public)) {
+                if (iptables_delete_rules(&private, &public, dry_run)) {
                     error("Failed to delete rules from IPv6 rules for mapping at index %d", i);
                 }
             }
@@ -69,12 +70,13 @@ void handle_line(const gateway_config_t* config, gateway_state_t* state, char bu
                 ipv6_net_t private = mappings[i * 2];
                 ipv6_net_t public = mappings[i * 2 + 1];
 
-                if (iptables_append_rules(&private, &public)) {
+                if (iptables_append_rules(&private, &public, dry_run)) {
                     error("Failed to append rules to IPv6 rules for mapping at index %d", i);
                 }
             }
 
-            // Dispatch Github Workflow...
+            // Dispatch GitHub Workflow...
+            github_dispatch_workflow(config, &prefix, mappings, config->networks.len);
 
             // Update state on disk
             state_update(state, prefix, mappings, config->networks.len);
@@ -89,7 +91,7 @@ void handle_line(const gateway_config_t* config, gateway_state_t* state, char bu
     }
 }
 
-void start_watcher(const gateway_config_t* config, gateway_state_t* state) {
+void start_watcher(const gateway_config_t* config, gateway_state_t* state, const int dry_run) {
     FILE* file = fopen(config->log_file, "r");
     char buffer[2048];
 
@@ -107,7 +109,7 @@ void start_watcher(const gateway_config_t* config, gateway_state_t* state) {
 
     while (true) {
         if (fgets(buffer, sizeof(buffer), file)) {
-            handle_line(config, state, buffer);
+            handle_line(config, state, buffer, dry_run);
         } else {
             if (feof(file)) {
                 clearerr(file);
@@ -121,7 +123,7 @@ void start_watcher(const gateway_config_t* config, gateway_state_t* state) {
     fclose(file);
 }
 
-void start_gateway() {
+void start_gateway(const int dry_run) {
     gateway_config_t config = load_gateway_config();
     gateway_state_t state = load_gateway_state();
     if (!config.ready) {
@@ -130,7 +132,8 @@ void start_gateway() {
     }
 
     info("Starting to tail provided file: %s", config.log_file);
-    start_watcher(&config, &state);
+    start_watcher(&config, &state, dry_run);
 
     free_gateway_config(&config);
+    free_gateway_state(&state);
 }

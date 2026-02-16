@@ -16,4 +16,6 @@ add_executable(ubitix main.c
         gateway/mapping.c
         gateway/mapping.h
         gateway/iptables.c
-        gateway/iptables.h)
+        gateway/iptables.h
+        gateway/github.c
+        gateway/github.h)

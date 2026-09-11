@@ -1,0 +1,32 @@
+[
+  {
+    "color": "red",
+    "type": "crab",
+    "size": "nano",
+    "name": "Rust"
+  },
+  {
+    "color": "warrior",
+    "type": "skeleton",
+    "size": "nano",
+    "name": "Rafael"
+  },
+  {
+    "color": "black",
+    "type": "dog",
+    "size": "nano",
+    "name": "Levy"
+  },
+  {
+    "color": "warrior",
+    "type": "horse",
+    "size": "nano",
+    "name": "Mu"
+  },
+  {
+    "color": "white",
+    "type": "cat",
+    "size": "nano",
+    "name": "Niklas"
+  }
+]
